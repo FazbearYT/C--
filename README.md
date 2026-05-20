@@ -1,6 +1,6 @@
 # Data Structures — C++20
 
-Stack, Queue, Binary Search Tree с меню и Google Test.
+Stack, Queue, Binary Search Tree терминал и Google Test.
 
 ## Структура
 
