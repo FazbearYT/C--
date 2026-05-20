@@ -3,52 +3,96 @@
 #include "stack.h"
 
 template <typename T>
+Stack<T>::~Stack() {
+    clear();
+}
+
+template <typename T>
+Stack<T>::Stack(Stack&& other) noexcept
+    : head_(other.head_), size_(other.size_) {
+    other.head_ = nullptr;
+    other.size_ = 0;
+}
+
+template <typename T>
+Stack<T>& Stack<T>::operator=(Stack&& other) noexcept {
+    if (this != &other) {
+        clear();
+        head_ = other.head_;
+        size_ = other.size_;
+        other.head_ = nullptr;
+        other.size_ = 0;
+    }
+    return *this;
+}
+
+template <typename T>
 void Stack<T>::push(T value) {
-    data_.push_back(std::move(value));
+    Node* node = new Node{std::move(value), head_};
+    head_ = node;
+    ++size_;
 }
 
 template <typename T>
 T Stack<T>::pop() {
     if (isEmpty()) throw std::underflow_error("Stack is empty");
-    T val = std::move(data_.back());
-    data_.pop_back();
+    Node* node = head_;
+    T val = std::move(node->value);
+    head_ = node->next;
+    delete node;
+    --size_;
     return val;
 }
 
 template <typename T>
 T& Stack<T>::top() {
     if (isEmpty()) throw std::underflow_error("Stack is empty");
-    return data_.back();
+    return head_->value;
 }
 
 template <typename T>
 const T& Stack<T>::top() const {
     if (isEmpty()) throw std::underflow_error("Stack is empty");
-    return data_.back();
+    return head_->value;
 }
 
 template <typename T>
 bool Stack<T>::isEmpty() const noexcept {
-    return data_.empty();
+    return head_ == nullptr;
 }
 
 template <typename T>
 std::size_t Stack<T>::size() const noexcept {
-    return data_.size();
+    return size_;
 }
 
 template <typename T>
 void Stack<T>::clear() noexcept {
-    data_.clear();
+    while (head_) {
+        Node* next = head_->next;
+        delete head_;
+        head_ = next;
+    }
+    size_ = 0;
 }
 
 template <typename T>
 std::optional<T> Stack<T>::peekN(int n) const {
-    if (n < 0 || static_cast<std::size_t>(n) >= data_.size()) return std::nullopt;
-    return data_[data_.size() - 1 - n];
+    if (n < 0 || static_cast<std::size_t>(n) >= size_) return std::nullopt;
+    Node* cur = head_;
+    for (int i = 0; i < n; ++i) cur = cur->next;
+    return cur->value;
 }
 
 template <typename T>
 void Stack<T>::reverse() {
-    std::reverse(data_.begin(), data_.end());
+    Node* prev = nullptr;
+    Node* cur = head_;
+    while (cur) {
+        Node* next = cur->next;
+        cur->next = prev;
+        prev = cur;
+        cur = next;
+    }
+    head_ = prev;
 }
